@@ -1,0 +1,22 @@
+{
+  "name": "tv-debloat-console",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/server",
+    "apps/web"
+  ],
+  "scripts": {
+    "postinstall": "node apps/server/scripts/fetch-scrcpy-server.mjs",
+    "dev": "concurrently --kill-others \"npm:dev --workspace @tv-debloat/server\" \"npm:dev --workspace @tv-debloat/web\"",
+    "build": "npm run build --workspace @tv-debloat/web",
+    "start": "cross-env APP_ENV=production tsx apps/server/src/index.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "tsx": "^4.20.6"
+  }
+}
