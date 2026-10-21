@@ -1,90 +1,101 @@
 # Field Console
 
-A local React UI for connecting to Android TV over Wi-Fi ADB, inspecting apps, streaming logcat, and undoing package changes. The backend binds to `127.0.0.1`; it is not a LAN web server.
+Manage an Android TV device over Wi-Fi from your computer. Field Console brings ADB connections, app management, device logs, and remote viewing into one local web interface. No permanent companion app is required on the TV.
+
+> **Local-first:** The app binds to `127.0.0.1`, not your LAN. The one-time URL printed at startup contains a local access token; keep it private.
+
+## Screenshots
+
+![Device connection screen](docs/screenshots/page1.png)
+![Device connection screen](docs/screenshots/page2.png)
+
+## Features
+
+- **Connect:** Wi-Fi ADB connect/disconnect, Android 11+ wireless pairing, mDNS discovery, and local-network discovery for legacy ADB on port `5555`.
+- **Inspect and troubleshoot:** Right-side command/output console, live `logcat`, and a searchable package inventory with filters.
+- **Manage apps:** Disable or re-enable packages, uninstall for the current user where Android allows it, and upload/install one APK at a time (up to 512 MiB). Core and active launcher packages are protected; package actions have local history with restore/undo.
+- **View and control:** Still screenshots, live H.264 video, and allowlisted D-pad, OK, Back, and Home controls over Wi-Fi ADB.
+- **Personalize:** Persistent light and dark themes with coordinated slate-and-teal colors.
+
+The live view uses the scrcpy 3.3.3 server, up to 1280 px and 30 fps, without audio. It starts only when requested and is stopped when the Remote view closes. DRM-protected video and other secure surfaces may appear black. Live decoding requires a modern browser with WebCodecs; screenshots remain available as a fallback.
 
 ## Requirements
 
-- macOS, Linux, or Windows with Node.js 22+ and npm
-- Android platform-tools (`adb`) on `PATH`
-- Android TV Developer options enabled
+- Node.js 22 or newer and npm
+- Android SDK Platform-Tools (`adb`) on your `PATH`
+- An Android device with Developer options enabled; for wireless use, enable **Wireless debugging** or configure legacy ADB over TCP
+- Internet access during `npm install` to download and verify the scrcpy server binary
 
-## Run
+Field Console is designed for ADB-capable Android devices, including Android TV boxes. LG webOS support is not implemented.
+
+## Quick start
+
+Install Platform-Tools first. On macOS with Homebrew:
 
 ```sh
+brew install android-platform-tools
+```
+
+On Windows or Linux, install Android SDK Platform-Tools using the official Android tools or your package manager. Then, from the repository root:
+
+```sh
+adb version
 npm install
 npm run dev
 ```
 
-Open the one-time URL printed by the server. It includes a random local access token; keep it private. The app and backend are both bound to localhost.
-
-For production mode:
+Open the one-time local URL printed in the terminal. To run the production build instead:
 
 ```sh
 npm run build
 npm start
 ```
 
-## Windows setup
-
-Install Node.js 22+ and Android SDK Platform-Tools. Add the directory containing `adb.exe` to your user `PATH`, then open a new PowerShell window and verify it is available:
-
-```powershell
-adb version
-npm install
-npm run dev
-```
-
-Alternatively, run `scripts\start-windows.bat` from File Explorer or a terminal. It checks Node.js, warns if ADB is missing, installs dependencies on first run, and starts the app. You can also run `.\scripts\start-windows.ps1` from PowerShell.
-
-If you do not want to add Platform-Tools to `PATH`, set `ADB_PATH` before starting the app:
-
-```powershell
-$env:ADB_PATH = 'C:\Android\platform-tools\adb.exe'
-npm run dev
-```
-
-Allow Android Debug Bridge through Windows Firewall on private networks if device discovery or connections are blocked.
-
-## Linux setup
-
-Install Node.js 22+ and Android SDK Platform-Tools using your distribution or the official Android download. Ensure `adb` is on `PATH`, then verify it and start the app:
+If `adb` is not on `PATH`, set `ADB_PATH` to its full executable path before starting the app. For example:
 
 ```sh
-adb version
-npm install
-npm run dev
-```
-
-Alternatively, set `ADB_PATH` to the full `adb` executable path before starting:
-
-```sh
+# macOS or Linux
 export ADB_PATH="$HOME/Android/platform-tools/adb"
 npm run dev
 ```
 
-On Linux, automatic subnet discovery uses `ip route`; install `iproute2` if that command is unavailable. Firewalls, VPNs, or blocked mDNS traffic can limit automatic discovery, but you can still enter the device IP and port manually.
+```powershell
+# Windows PowerShell
+$env:ADB_PATH = 'C:\Android\platform-tools\adb.exe'
+npm run dev
+```
 
 ## Connect without USB
 
-On Android 11+, enable **Developer options → Wireless debugging**. Choose **Pair device with pairing code** and enter the displayed pairing port and six-digit code in **Connection**. The code is redacted from the console. Then connect to the separate IP address and connection port shown on the Wireless debugging screen.
+### Android 11 and newer
 
-If using port 5555 instead, enter the box IP and `5555` in the connection bar. Some firmware requires `adb tcpip 5555` from a USB session and may reset that mode after reboot.
+1. On the TV, open **Developer options → Wireless debugging**.
+2. Choose **Pair device with pairing code**.
+3. In Field Console's **Connection** section, enter the TV's IP address, pairing port, and pairing code.
+4. After pairing, connect using the separate IP address and connection port shown on the Wireless debugging screen.
 
-On the **Connection** page, **Scan network** lists Android Wireless debugging endpoints advertised over ADB mDNS and probes the active local IPv4 subnet for legacy ADB on port `5555`. The probe checks up to 512 private IPv4 hosts and only tests whether TCP port `5555` accepts a connection. Choose a Connect endpoint to fill the connection IP/port, or a Pair endpoint to fill the pairing IP/port. Larger subnets and IPv6 are not scanned; manual entry remains available.
+The pairing code is redacted from the console. Pairing and connecting use different ports.
 
-The current connected target reported Android 11, model `MiTV-AFKR0`, device `jaws`; the UI can connect to other Android ADB devices too.
+### Legacy ADB over TCP
 
-## Current features
+Enter the TV's IP address and port `5555` in the connection bar. Some firmware requires enabling this mode once over USB with `adb tcpip 5555`, and may turn it off after a reboot.
 
-- Wi-Fi ADB connect, disconnect and Android 11+ pairing
-- ADB mDNS discovery and local IPv4 probing for legacy ADB port 5555
-- Right-side command/output console and live logcat stream
-- Embedded live H.264 video (scrcpy 3.3.3, up to 1280 px / 30 fps, no audio), still screenshots, and allowlisted D-pad, OK, Back and Home controls over Wi-Fi ADB
-- Package inventory with search and type/state/assessment filters, plus disable/enable and uninstall-for-user actions
-- Upload and install a single APK over Wi-Fi (updates compatible existing apps; 512 MiB maximum)
-- Protected core/active launcher packages
-- Local package-action history with restore/undo
+On the **Connection** page, **Scan network** finds Android wireless-debugging endpoints advertised over ADB mDNS and probes up to 512 private IPv4 hosts for legacy ADB on port `5555`. The probe only tests whether that TCP port accepts a connection. Larger subnets and IPv6 are not scanned; manual entry is available.
 
-Network diagnostics, deeper crash/performance tooling, saved fix scripts, file management, a curated safety database and LG webOS support are not implemented yet. Package names are shown as reported by Android; review them carefully before changing system packages.
+## Platform notes
 
-The **Remote** page starts video only when requested and stops the temporary scrcpy server when the view closes. The server binary is downloaded from the official Genymobile/scrcpy 3.3.3 release and checked against its published SHA-256 during `npm install`; this requires internet access during installation. The TV does not need a permanently installed app. Live decoding requires a modern browser with WebCodecs; still screenshots remain available as a fallback. Android may show a black image for DRM-protected video or other secure surfaces.
+### Windows
+
+Install Node.js 22+ and Android SDK Platform-Tools, then add the folder containing `adb.exe` to your user `PATH`. Open a new PowerShell window and run the quick-start commands above.
+
+Alternatively, run `scripts\start-windows.bat`. It checks for Node.js, warns if ADB is missing, installs dependencies on first run, and starts the app. PowerShell users can also run `.\scripts\start-windows.ps1`. Allow ADB through Windows Firewall on private networks if discovery or connections are blocked.
+
+### Linux
+
+Install Node.js 22+ and Android SDK Platform-Tools, and make sure `adb` is on `PATH`. Automatic subnet discovery uses `ip route`; install `iproute2` if that command is unavailable. Firewalls, VPNs, or blocked mDNS traffic can limit discovery, but manual IP and port entry remains available.
+
+## Safety and limitations
+
+ADB package actions can affect device stability. Review package names before changing system apps; disabling or uninstalling a package may affect TV features, and Android generally does not allow system apps to be fully removed without elevated access. Local package history can restore supported actions, but it is not a substitute for a device backup.
+
+Network diagnostics, deeper crash/performance tools, saved fix scripts, file management, a curated package-safety database, and LG webOS support are not implemented yet.

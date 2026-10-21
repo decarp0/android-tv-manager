@@ -6,10 +6,14 @@ import type { PackageAssessmentFilter, PackageStateFilter, PackageTypeFilter } f
 import type { Section } from './types'
 
 type PendingUninstall = { packageName: string; serial: string }
+type Theme = 'light' | 'dark'
+
+const THEME_STORAGE_KEY = 'tv-debloat-theme'
 
 export function useAppController() {
 
   const [token] = useState(() => readTokenFromUrl())
+  const [theme, setTheme] = useState<Theme>(() => localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark')
   const [section, setSection] = useState<Section>('Overview')
   const [devices, setDevices] = useState<Device[]>([])
   const [discoveredEndpoints, setDiscoveredEndpoints] = useState<DiscoveredEndpoint[]>([])
@@ -42,8 +46,19 @@ export function useAppController() {
   const consoleResizeRef = useRef<{ x: number; width: number } | null>(null)
   useEffect(() => {
     persistTokenAndCleanUrl(token)
-    document.documentElement.classList.add('dark')
   }, [token])
+
+  useEffect(() => {
+    const isDark = theme === 'dark'
+    document.documentElement.classList.toggle('dark', isDark)
+    document.documentElement.style.colorScheme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#111820' : '#f1f5f6')
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  function toggleTheme() {
+    setTheme((current) => current === 'dark' ? 'light' : 'dark')
+  }
 
   const selectedDevice = devices.find((device) => device.serial === serial)
   const selectedEndpoint = discoveredEndpoints.find((endpoint) => endpointId(endpoint) === discoveredSelection)
@@ -343,7 +358,7 @@ export function useAppController() {
   }
 
   return {
-    token, section, setSection, devices, discoveredEndpoints, discoveredSelection, discoveryMessage,
+    token, theme, toggleTheme, section, setSection, devices, discoveredEndpoints, discoveredSelection, discoveryMessage,
     serial, host, port, pairingPort, pairingCode, packages, history, events, filter,
     packageSearch, packageTypeFilter, packageStateFilter, packageAssessmentFilter,
     notice, setNotice, busy, loadingPackages, pendingUninstall, logcatRunning,

@@ -1,4 +1,4 @@
-import { ChevronRight, LoaderCircle, Plug, RefreshCw, Wifi } from 'lucide-react'
+import { ChevronRight, LoaderCircle, Moon, Plug, RefreshCw, Sun, Wifi } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { endpointId } from '@/lib/console-utils'
@@ -6,15 +6,27 @@ import { useAppContext } from '@/app/useAppContext'
 
 export function DeviceHeader() {
   const {
-    section, token, busy, discoverEndpoints, connectDiscoveredDevice,
+    section, theme, toggleTheme, token, busy, discoverEndpoints, connectDiscoveredDevice,
     discoveredEndpoints, discoveredSelection, selectDiscoveredEndpoint,
     selectedEndpoint, discoveryMessage,
   } = useAppContext()
 
   return (
     <header className="topbar">
-      <div className="breadcrumb">
-        <span>Console</span><ChevronRight aria-hidden="true" /><strong>{section}</strong>
+      <div className="topbar-leading">
+        <div className="breadcrumb">
+          <span>Console</span><ChevronRight aria-hidden="true" /><strong>{section}</strong>
+        </div>
+        <Button
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          className="theme-toggle"
+          onClick={toggleTheme}
+          size="icon"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          variant="outline"
+        >
+          {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+        </Button>
       </div>
       <div className="header-connect-wrap">
         <form className="header-connect" onSubmit={connectDiscoveredDevice}>

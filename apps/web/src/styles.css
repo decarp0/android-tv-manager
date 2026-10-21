@@ -187,6 +187,18 @@ input {
   background: color-mix(in oklch, var(--background), var(--card) 30%);
 }
 
+.topbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.theme-toggle {
+  flex: 0 0 auto;
+  color: var(--muted-foreground);
+}
+
 .breadcrumb,
 .header-connect,
 .console-actions,
@@ -831,12 +843,19 @@ input {
   flex-direction: column;
   overflow: hidden;
   border-left: 1px solid var(--border);
-  background: color-mix(in oklch, var(--background), black 8%);
+  background: var(--sidebar);
+  --console-output: oklch(0.44 0.1 160);
+  --console-info: oklch(0.45 0.12 235);
+  --console-logcat: oklch(0.45 0.12 295);
+  --console-success: oklch(0.44 0.12 150);
+  --console-error: color-mix(in oklch, var(--destructive) 75%, var(--foreground));
+}
+
+.dark .console-panel {
   --console-output: oklch(0.82 0.11 160);
   --console-info: oklch(0.82 0.11 235);
   --console-logcat: oklch(0.82 0.11 295);
   --console-success: oklch(0.8 0.14 150);
-  --console-error: color-mix(in oklch, var(--destructive) 75%, var(--foreground));
 }
 
 .console-resizer {
